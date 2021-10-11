@@ -17,6 +17,19 @@ impl EntityTag {
             index_id: index_id,
         }
     }
+
+    pub fn get_country_id(&self) -> u16 {
+        self.country_id
+    }
+    pub fn get_state_id(&self) -> u16 {
+        self.state_id
+    }
+    pub fn get_province_id(&self) -> u16 {
+        self.province_id
+    }
+    pub fn get_index_id(&self) -> u16 {
+        self.index_id
+    }
 }
 #[derive(Clone, Copy, Debug)]
 pub struct AmountRecipt {
@@ -31,6 +44,16 @@ impl AmountRecipt {
             amount: amount,
         }
     }
+
+    pub fn get_tag(&self) -> &EntityTag {
+        &self.tag
+    }
+    pub fn get_amount(&self) -> f32 {
+        self.amount
+    }
+    pub fn get_amount_mut(&mut self) -> &mut f32 {
+        &mut self.amount
+    }
 }
 #[derive(Clone, Copy, Debug)]
 pub struct EntityCount {
@@ -44,6 +67,16 @@ impl EntityCount {
             tag: tag,
             count: amount,
         }
+    }
+
+    pub fn get_tag(&self) -> &EntityTag {
+        &self.tag
+    }
+    pub fn get_amount(&self) -> u32 {
+        self.count
+    }
+    pub fn get_amount_mut(&mut self) -> &mut u32 {
+        &mut self.count
     }
 }
 

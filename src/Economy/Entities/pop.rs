@@ -37,12 +37,11 @@ impl Pop {
         }
     }
 
-	fn demand_unit_multiplier(&self) -> f32
-	{
-		let count_per_unit_define: f32 = 1.0 / 125000.0;
+    fn demand_unit_multiplier(&self) -> f32 {
+        let count_per_unit_define: f32 = 1.0 / 125000.0;
 
-		(self.numpops as f32) * count_per_unit_define
-	}
+        (self.numpops as f32) * count_per_unit_define
+    }
 }
 
 impl EcoEntity for Pop {
