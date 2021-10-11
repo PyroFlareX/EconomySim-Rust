@@ -1,5 +1,3 @@
-use std::array;
-
 use crate::Economy::Entities::*;
 
 pub struct WorldMarket {
@@ -9,6 +7,15 @@ pub struct WorldMarket {
     global_market: Market,
 
     prices: Vec<f32>,
+}
+
+impl WorldMarket {
+    pub fn new() -> Self {
+        Self {
+            global_market: Market::new(),
+            prices: vec![0.0; 256],
+        }
+    }
 }
 
 pub struct Market {
@@ -46,11 +53,27 @@ impl Market {
         }
     }
 
-    pub fn addDemandRequest(&mut self, recipt: AmountRecipt, good_type: u8) {
+    pub fn add_demand_request(&mut self, recipt: AmountRecipt, good_type: u8) {
         self.demand_recipt_list[good_type as usize].push(recipt);
     }
 
-    pub fn addSupplyAmount(&mut self, recipt: AmountRecipt, good_type: u8) {
+    pub fn add_supply_amount(&mut self, recipt: AmountRecipt, good_type: u8) {
         self.supply_recipt_list[good_type as usize].push(recipt);
+    }
+
+    pub fn get_good_demand_list(&self, good_type: u8) -> &Vec<AmountRecipt> {
+        &self.demand_recipt_list[good_type as usize]
+    }
+
+    pub fn get_good_demand_list_mut(&mut self, good_type: u8) -> &mut Vec<AmountRecipt> {
+        &mut self.demand_recipt_list[good_type as usize]
+    }
+
+    pub fn get_good_supply_list(&self, good_type: u8) -> &Vec<AmountRecipt> {
+        &self.demand_recipt_list[good_type as usize]
+    }
+
+    pub fn get_good_supply_list_mut(&mut self, good_type: u8) -> &mut Vec<AmountRecipt> {
+        &mut self.demand_recipt_list[good_type as usize]
     }
 }

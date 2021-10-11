@@ -1,20 +1,20 @@
 #[derive(Clone, Copy, Debug)]
 pub struct EntityTag {
-    countryID: u16,
-    stateID: u16,
+    country_id: u16,
+    state_id: u16,
 
-    provinceID: u16,
+    province_id: u16,
 
-    indexID: u16,
+    index_id: u16,
 }
 
 impl EntityTag {
-    pub fn new(country_ID: u16, state_ID: u16, province_ID: u16, index_ID: u16) -> Self {
+    pub fn new(country_id: u16, state_id: u16, province_id: u16, index_id: u16) -> Self {
         Self {
-            countryID: country_ID,
-            stateID: state_ID,
-            provinceID: province_ID,
-            indexID: index_ID,
+            country_id: country_id,
+            state_id: state_id,
+            province_id: province_id,
+            index_id: index_id,
         }
     }
 }
@@ -47,10 +47,18 @@ impl EntityCount {
     }
 }
 
-trait EcoEntity {
-    fn addMoney(&mut self, amount: f32);
-    fn removeMoney(&mut self, amount: f32);
-    fn getMoney(&self) -> &f32;
+pub enum EntityType {
+    Pop = 0,
+    Artisan = 1,
+    Country = 2,
+    Factory = 3,
+    Building = 4,
+}
 
-    fn getType(&self) -> u8;
+pub trait EcoEntity {
+    fn add_money(&mut self, amount: f32);
+    fn remove_money(&mut self, amount: f32);
+    fn get_money(&self) -> &f32;
+
+    fn get_type(&self) -> EntityType;
 }

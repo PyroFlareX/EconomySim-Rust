@@ -1,3 +1,5 @@
+use super::{EcoEntity, EntityType};
+
 pub struct Pop {
     numpops: u32,
 
@@ -33,5 +35,30 @@ impl Pop {
             dailyneeds: vec![0.0; 256],
             luxuryneeds: vec![0.0; 256],
         }
+    }
+}
+
+impl EcoEntity for Pop {
+    fn add_money(&mut self, amount: f32) {
+        self.money += amount;
+        self.income += amount;
+    }
+
+    fn remove_money(&mut self, amount: f32) {
+        self.money -= amount;
+        self.spending += amount;
+    }
+
+    fn get_money(&self) -> &f32 {
+        &self.money
+    }
+
+    fn get_type(&self) -> EntityType {
+        /*if self.pop_type == poptype::artisan
+        {
+            return EntityType::artisan;
+        }*/
+
+        EntityType::Pop
     }
 }
