@@ -7,6 +7,9 @@ pub struct WorldMarket {
     global_market: Market,
 
     prices: Vec<f32>,
+
+	previous_demand: Vec<f32>,
+	previous_supply: Vec<f32>,
 }
 
 impl WorldMarket {
@@ -14,8 +17,39 @@ impl WorldMarket {
         Self {
             global_market: Market::new(),
             prices: vec![0.0; 256],
+			previous_demand: vec![0.0; 256],
+			previous_supply: vec![0.0; 256],
         }
     }
+
+	pub fn reset(&mut self)
+	{
+		let change_amount = 0.01;
+
+		for i in 0..255
+		{
+			if self.global_market.demand[i as usize] > self.global_market.supply[i as usize]
+			{
+				self.prices[i] += change_amount;
+			}
+			else if self.global_market.demand[i as usize] < self.global_market.supply[i as usize]
+			{
+				self.prices[i] += change_amount;
+			}
+
+			//Add in a min / max for goods prices
+
+
+			//Hist stuff
+			self.previous_demand[i as usize] = self.global_market.demand[i as usize];
+			self.previous_supply[i as usize] = self.global_market.supply[i as usize];
+		}
+	}
+
+	pub fn get_good_price(&self, good_id: u8) -> &f32
+	{
+		&self.prices[good_id as usize]
+	}
 }
 
 pub struct Market {

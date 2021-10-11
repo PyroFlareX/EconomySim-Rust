@@ -44,6 +44,11 @@ impl Country {
     pub fn get_income_history(&self) -> &[f32; 32] {
         &self.income_history
     }
+
+    pub fn create_demand_lists(&mut self)
+    {
+        
+    }
 }
 
 impl EcoEntity for Country {
