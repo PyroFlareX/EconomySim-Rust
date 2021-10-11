@@ -91,7 +91,7 @@ pub enum EntityType {
 pub trait EcoEntity {
     fn add_money(&mut self, amount: f32);
     fn remove_money(&mut self, amount: f32);
-    fn get_money(&self) -> &f32;
+    fn get_money(&self) -> f32;
 
     fn get_type(&self) -> EntityType;
 }

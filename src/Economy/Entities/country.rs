@@ -59,8 +59,8 @@ impl EcoEntity for Country {
         self.income_history[31] -= amount;
     }
 
-    fn get_money(&self) -> &f32 {
-        &self.money
+    fn get_money(&self) -> f32 {
+        self.money
     }
 
     fn get_type(&self) -> EntityType {

@@ -50,8 +50,8 @@ impl EcoEntity for Factory {
         self.spending += amount;
     }
 
-    fn get_money(&self) -> &f32 {
-        &self.money
+    fn get_money(&self) -> f32 {
+        self.money
     }
 
     fn get_type(&self) -> EntityType {

@@ -49,8 +49,8 @@ impl WorldMarket {
         }
     }
 
-    pub fn get_good_price(&self, good_id: u8) -> &f32 {
-        &self.prices[good_id as usize]
+    pub fn get_good_price(&self, good_id: u8) -> f32 {
+        self.prices[good_id as usize]
     }
 
     pub fn merge_country_market(&mut self, country_market: &mut Market) {

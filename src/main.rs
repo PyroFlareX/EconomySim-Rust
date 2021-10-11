@@ -63,22 +63,27 @@ fn main() {
         // Match remaining supply and demand inside the world economy (Pretty sure required to be sequential sadly)
         //      Within this, also do the pop ticks for growth, migration, assimilation, etc
         for good_id in 0..255 {
-            for demand_recipt in &*world_market.get_market().get_good_demand_list(good_id) {
+            for demand_recipt in world_market
+                .get_market()
+                .get_good_demand_list(good_id)
+                .iter()
+            {
                 if demand_recipt.get_amount() <= 0.0 as f32 {
                     continue;
                 }
 
                 let mut remaining_demand = demand_recipt.get_amount();
 
-                let buyer_country = country_map
+                let mut buyer_country = country_map
                     .get_mut(&demand_recipt.get_tag().get_country_id())
                     .expect("The country ID passed for the demand recipt is not valid.");
 
-                // let mut buyer =
+                let mut buyer: Box<dyn EcoEntity>;// = Box::new(buyer_country); // = // This is the buyer implemented through an EcoEntity Trait
 
                 for supply_recipt in world_market
-                    .get_market_mut()
-                    .get_good_supply_list_mut(good_id)
+                    .get_market()
+                    .get_good_supply_list(good_id)
+                    .iter()
                 {
                     if remaining_demand <= 0.0 {
                         break;
@@ -87,7 +92,11 @@ fn main() {
                         continue;
                     }
 
+                    let mut supplier: Box<dyn EcoEntity>; // This is for the supplier, impled through an Eco Entity Trait
+
                     //Now here, I cross check between the available supply and the demand to match them to one another
+                    let buyable = (buyer.get_money() / world_market.get_good_price(good_id))
+                        .min(supply_recipt.get_amount());
                     // supply_recipt.get_amount()
                 }
             }
