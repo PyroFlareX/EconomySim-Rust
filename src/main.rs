@@ -1,6 +1,6 @@
 use std::collections::HashMap;
 
-use Economy::Entities::country;
+mod Economy;
 
 #[allow(non_snake_case)]
 
