@@ -16,6 +16,8 @@ pub struct Pop {
     lifeneeds: Vec<f32>,
     dailyneeds: Vec<f32>,
     luxuryneeds: Vec<f32>,
+
+    inventory: Vec<f32>,
 }
 
 impl Pop {
@@ -34,6 +36,8 @@ impl Pop {
             lifeneeds: vec![0.0; 256],
             dailyneeds: vec![0.0; 256],
             luxuryneeds: vec![0.0; 256],
+
+            inventory: vec![0.0; 256],
         }
     }
 
@@ -65,5 +69,19 @@ impl EcoEntity for Pop {
             return EntityType::artisan;
         }*/
         EntityType::Pop
+    }
+
+    fn get_inventory(&self) -> &Vec<f32> {
+        &self.inventory
+    }
+    fn add_to_inventory(&mut self, good_id: u8, amount: f32) {
+        self.inventory[good_id as usize] += amount;
+    }
+
+    fn remove_from_inventory(&mut self, good_id: u8, amount: f32) {
+        //if self.get_type() == EntityType::Artisan
+        {
+            self.inventory[good_id as usize] -= amount;
+        }
     }
 }

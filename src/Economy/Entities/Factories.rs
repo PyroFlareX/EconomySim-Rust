@@ -57,4 +57,15 @@ impl EcoEntity for Factory {
     fn get_type(&self) -> EntityType {
         EntityType::Factory
     }
+
+    fn get_inventory(&self) -> &Vec<f32> {
+        &self.goods_inventory
+    }
+    fn add_to_inventory(&mut self, good_id: u8, amount: f32) {
+        self.goods_inventory[good_id as usize] += amount;
+    }
+
+    fn remove_from_inventory(&mut self, good_id: u8, amount: f32) {
+        self.goods_inventory[good_id as usize] -= amount;
+    }
 }

@@ -94,4 +94,31 @@ pub trait EcoEntity {
     fn get_money(&self) -> f32;
 
     fn get_type(&self) -> EntityType;
+
+    fn get_inventory(&self) -> &Vec<f32>;
+    fn add_to_inventory(&mut self, good_id: u8, amount: f32);
+    fn remove_from_inventory(&mut self, good_id: u8, amount: f32);
+
+    fn transfer_money(&mut self, receiver: &mut impl EcoEntity, money_spending: f32) {
+        self.remove_money(money_spending);
+        receiver.add_money(money_spending);
+    }
+
+    fn transfer_good(&mut self, receiver: &mut impl EcoEntity, good_id: u8, good_amount: f32) {
+        self.remove_from_inventory(good_id, good_amount);
+        receiver.add_to_inventory(good_id, good_amount);
+    }
+
+    fn good_transaction(
+        &mut self,
+        receiver: &mut impl EcoEntity,
+        good_id: u8,
+        good_amount: f32,
+        money_spending: f32,
+    ) {
+        //Transfer the money
+        self.transfer_good(receiver, good_id, good_amount);
+        //Transfer the good
+        self.transfer_money(receiver, money_spending);
+    }
 }

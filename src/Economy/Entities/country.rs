@@ -11,6 +11,8 @@ pub struct Country {
 
     money: f32,
     income_history: [f32; 32],
+
+    stockpile: Vec<f32>,
 }
 
 impl Country {
@@ -22,6 +24,8 @@ impl Country {
             local_market: Market::new(),
             money: 10000.0, //10k
             income_history: [0.0; 32],
+
+            stockpile: vec![0.0; 256],
         }
     }
 
@@ -65,5 +69,15 @@ impl EcoEntity for Country {
 
     fn get_type(&self) -> EntityType {
         EntityType::Country
+    }
+
+    fn get_inventory(&self) -> &Vec<f32> {
+        &self.stockpile
+    }
+    fn add_to_inventory(&mut self, good_id: u8, amount: f32) {
+        self.stockpile[good_id as usize] += amount;
+    }
+    fn remove_from_inventory(&mut self, good_id: u8, amount: f32) {
+        self.stockpile[good_id as usize] -= amount;
     }
 }
