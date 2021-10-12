@@ -4,11 +4,6 @@ pub struct GoodData {
     id: u8,
 
     properties: u8,
-    //Maybe add:
-    /*
-    color : vec3
-    textureID : u16
-    */
 }
 
 impl GoodData {
@@ -33,5 +28,5 @@ impl GoodData {
         self.base_cost
     }
 
-    //Add the bool getter functions for each type + make the enum?
+    //Add the bool getter functions for each type (for property) + make the enum?
 }

@@ -44,7 +44,6 @@ impl AmountRecipt {
             amount: amount,
         }
     }
-
     pub fn get_tag(&self) -> &EntityTag {
         &self.tag
     }
@@ -68,7 +67,6 @@ impl EntityCount {
             count: amount,
         }
     }
-
     pub fn get_tag(&self) -> &EntityTag {
         &self.tag
     }

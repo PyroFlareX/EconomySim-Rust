@@ -1,4 +1,4 @@
-use std::{collections::HashMap, ops::AddAssign};
+use std::{cell::RefCell, collections::HashMap, ops::AddAssign};
 
 use crate::Economy::{Country, EcoEntity, GoodData, Province, State, WorldMarket};
 
@@ -13,9 +13,9 @@ fn main() {
 
     println!("{}", x);
 
-    let mut country_map: HashMap<u16, Country> = HashMap::new();
-    let mut state_map: HashMap<u16, State> = HashMap::new();
-    let mut province_map: HashMap<u16, Province> = HashMap::new();
+    let mut country_map: HashMap<u16, RefCell<Country>> = HashMap::new();
+    let mut state_map: HashMap<u16, RefCell<State>> = HashMap::new();
+    let mut province_map: HashMap<u16, RefCell<Province>> = HashMap::new();
 
     // let mut goods_map: HashMap<u8, GoodData> = HashMap::new(); //OR
     let mut goods_list: Vec<Option<GoodData>> = Vec::new(); // or (not working) vec![&Option::None; 256];
@@ -30,29 +30,35 @@ fn main() {
     goods_list[0] = Some(good_example);
 
     //Countries
-    for i in 0..16
-    {
+    for i in 0..16 {
         let mut tag = "T".to_string();
         tag.push_str(i.to_string().as_str());
 
-        country_map.get_mut(&i).insert(&mut Country::new(i, tag.as_str()));
+        country_map
+            .get_mut(&i)
+            .insert(&mut RefCell::new(Country::new(i, tag.as_str())));
     }
 
     //States
-    for i in 0..16
-    {
+    for i in 0..16 {
         let mut name = "State ".to_string();
         name.push_str(i.to_string().as_str());
 
         let prov_ids = vec![i, i + 1, i + 2, i + 3];
 
-        state_map.get_mut(&i).insert(&mut State::new(i, i / 2, name.as_str(), prov_ids));
+        state_map.get_mut(&i).insert(&mut RefCell::new(State::new(
+            i,
+            i / 2,
+            name.as_str(),
+            prov_ids,
+        )));
     }
 
     //Provinces
-    for i in 0..64
-    {
-        province_map.get_mut(&i).insert(&mut Province::new(i, i / 4));   
+    for i in 0..64 {
+        province_map
+            .get_mut(&i)
+            .insert(&mut RefCell::new(Province::new(i, i / 4)));
     }
 
     // Including pops
@@ -71,8 +77,8 @@ fn main() {
         world_market.reset();
 
         // Then (in parallel too), create the demand lists for each country
-        for (_country_id, country) in &mut country_map {
-            country.create_demand_lists();
+        for (_country_id, country) in &country_map {
+            country.borrow_mut().create_demand_lists();
         }
 
         // Then (in parallel too) execute the local country economy tick
@@ -80,7 +86,7 @@ fn main() {
         // Then move the local economies into the world market (by rank)
         //      Calculate the rank, this is not going to be done for this, since this is only partial, but /shrug
         for (_country_id, country) in &mut country_map {
-            world_market.merge_country_market(country.get_market_mut());
+            world_market.merge_country_market(country.borrow_mut().get_market_mut());
         }
 
         // Match remaining supply and demand inside the world economy (Pretty sure required to be sequential sadly)
@@ -104,13 +110,19 @@ fn main() {
                 let mut remaining_demand = demand_recipt.get_amount();
 
                 let mut buyer_country = country_map
-                    .get_mut(&demand_recipt.get_tag().get_country_id())
-                    .expect("The country ID passed for the demand recipt is not valid.");
+                    .get(&demand_recipt.get_tag().get_country_id())
+                    .expect("The country ID passed for the demand recipt is not valid.")
+                    .borrow_mut();
 
-                let buyer = &mut province_map
-                    .get_mut(&demand_recipt.get_tag().get_province_id())
-                    .unwrap()
-                    .get_pops_mut()[demand_recipt.get_tag().get_index_id() as usize];
+                let mut buyer_province = province_map
+                    .get(&demand_recipt.get_tag().get_province_id())
+                    .expect("The province ID passed for the demand recipt is not valid.")
+                    .borrow_mut();
+
+                let mut buyer2 = &mut buyer_province.get_pops_mut()
+                    [demand_recipt.get_tag().get_index_id() as usize];
+
+                let mut buyer = *buyer_country;
 
                 //let mut test_buyer_country = Box::new(Country::new(0, "NUL"));
 
@@ -129,10 +141,13 @@ fn main() {
                     }
 
                     // This is for the supplier, impled through an Eco Entity Trait
-                    let mut supplier = &mut province_map
-                        .get_mut(&demand_recipt.get_tag().get_province_id())
-                        .unwrap()
-                        .get_pops_mut()[demand_recipt.get_tag().get_index_id() as usize];
+                    let mut supplier_prov = province_map
+                        .get(&demand_recipt.get_tag().get_province_id())
+                        .expect("The province ID passed for the supply recipt is not valid.")
+                        .borrow_mut();
+
+                    let mut supplier = &mut supplier_prov.get_pops_mut()
+                        [demand_recipt.get_tag().get_index_id() as usize];
 
                     //Now here, I cross check between the available supply and the demand to match them to one another
                     let buyable = (buyer.get_money() / good_price).min(supply_recipt.get_amount());
@@ -141,7 +156,7 @@ fn main() {
                     supply_recipt.get_amount_mut().add_assign(-buyable);
                     remaining_demand -= buyable;
 
-                    from_seller_to_buyer(good_id, buyable, spending, supplier, buyer);
+                    from_seller_to_buyer(good_id, buyable, spending, &mut supplier, &mut buyer);
                     //Other function that I wish I could use but I don't fully understand traits yet, so /shrug
                     //supplier.good_transaction(&mut buyer, good_id, buyable, spending);
                 }
@@ -161,13 +176,16 @@ fn main() {
     }
 }
 
-fn from_seller_to_buyer(
+fn from_seller_to_buyer<T, U>(
     good_id: u8,
     good_amount: f32,
     money_spending: f32,
-    seller: &mut impl EcoEntity,
-    buyer: &mut impl EcoEntity,
-) {
+    seller: &mut T,
+    buyer: &mut U,
+) where
+    T: EcoEntity,
+    U: EcoEntity,
+{
     buyer.remove_money(money_spending);
     buyer.add_to_inventory(good_id, good_amount);
 
