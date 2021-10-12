@@ -18,24 +18,42 @@ fn main() {
     let mut province_map: HashMap<u16, Province> = HashMap::new();
 
     // let mut goods_map: HashMap<u8, GoodData> = HashMap::new(); //OR
-    let mut goods_list: Vec<Option<GoodData>> =  Vec::new(); // or (not working) vec![&Option::None; 256];
-    for i in 0..256
-    {
+    let mut goods_list: Vec<Option<GoodData>> = Vec::new(); // or (not working) vec![&Option::None; 256];
+    for _i in 0..256 {
         goods_list.push(None);
     }
-
     assert_eq!(goods_list.len(), 256);
 
     //Gotta load the goods, country, state, provinces, pops
     //Goods for now:
-
     let good_example = GoodData::new(0, 2.5, "good_name", 0);
     goods_list[0] = Some(good_example);
+
     //Countries
+    for i in 0..16
+    {
+        let mut tag = "T".to_string();
+        tag.push_str(i.to_string().as_str());
+
+        country_map.get_mut(&i).insert(&mut Country::new(i, tag.as_str()));
+    }
 
     //States
+    for i in 0..16
+    {
+        let mut name = "State ".to_string();
+        name.push_str(i.to_string().as_str());
+
+        let prov_ids = vec![i, i + 1, i + 2, i + 3];
+
+        state_map.get_mut(&i).insert(&mut State::new(i, i / 2, name.as_str(), prov_ids));
+    }
 
     //Provinces
+    for i in 0..64
+    {
+        province_map.get_mut(&i).insert(&mut Province::new(i, i / 4));   
+    }
 
     // Including pops
 
@@ -67,7 +85,10 @@ fn main() {
 
         // Match remaining supply and demand inside the world economy (Pretty sure required to be sequential sadly)
         //      Within this, also do the pop ticks for growth, migration, assimilation, etc
-        for good_id in 0..255 {
+
+        //Iterates for each good
+        for (index, good) in goods_list.iter().enumerate() {
+            let good_id = index as u8;
             let demand_list = world_market
                 .get_market()
                 .get_good_demand_list(good_id)
@@ -86,7 +107,7 @@ fn main() {
                     .get_mut(&demand_recipt.get_tag().get_country_id())
                     .expect("The country ID passed for the demand recipt is not valid.");
 
-                let mut buyer = &mut province_map
+                let buyer = &mut province_map
                     .get_mut(&demand_recipt.get_tag().get_province_id())
                     .unwrap()
                     .get_pops_mut()[demand_recipt.get_tag().get_index_id() as usize];
@@ -120,8 +141,9 @@ fn main() {
                     supply_recipt.get_amount_mut().add_assign(-buyable);
                     remaining_demand -= buyable;
 
-                    //supplier.good_transaction(&mut buyer, good_id, buyable, spending);
                     from_seller_to_buyer(good_id, buyable, spending, supplier, buyer);
+                    //Other function that I wish I could use but I don't fully understand traits yet, so /shrug
+                    //supplier.good_transaction(&mut buyer, good_id, buyable, spending);
                 }
             }
         }
