@@ -1,6 +1,4 @@
-use std::collections::HashMap;
-
-use Economy::EntityTag;
+use std::{collections::HashMap, ops::AddAssign};
 
 use crate::Economy::{Country, EcoEntity, GoodData, Province, State, WorldMarket};
 
@@ -19,14 +17,20 @@ fn main() {
     let mut state_map: HashMap<u16, State> = HashMap::new();
     let mut province_map: HashMap<u16, Province> = HashMap::new();
 
-    let mut goods_map: HashMap<u8, GoodData> = HashMap::new();
+    // let mut goods_map: HashMap<u8, GoodData> = HashMap::new(); //OR
+    let mut goods_list: Vec<Option<GoodData>> =  Vec::new(); // or (not working) vec![&Option::None; 256];
+    for i in 0..256
+    {
+        goods_list.push(None);
+    }
+
+    assert_eq!(goods_list.len(), 256);
 
     //Gotta load the goods, country, state, provinces, pops
     //Goods for now:
-    for i in 0..255 {
-        let good = GoodData::new(i, 2.5, "good_name", 0);
-        goods_map.insert(i, good);
-    }
+
+    let good_example = GoodData::new(0, 2.5, "good_name", 0);
+    goods_list[0] = Some(good_example);
     //Countries
 
     //States
@@ -42,6 +46,7 @@ fn main() {
     //Now, begin the economy loop
 
     let mut cont = true;
+    let mut num_iterations = 0;
 
     while cont {
         // First Clear from previous
@@ -63,11 +68,14 @@ fn main() {
         // Match remaining supply and demand inside the world economy (Pretty sure required to be sequential sadly)
         //      Within this, also do the pop ticks for growth, migration, assimilation, etc
         for good_id in 0..255 {
-            for demand_recipt in world_market
+            let demand_list = world_market
                 .get_market()
                 .get_good_demand_list(good_id)
-                .iter()
-            {
+                .clone();
+
+            let good_price = world_market.get_good_price(good_id);
+
+            for demand_recipt in demand_list.iter() {
                 if demand_recipt.get_amount() <= 0.0 as f32 {
                     continue;
                 }
@@ -78,12 +86,19 @@ fn main() {
                     .get_mut(&demand_recipt.get_tag().get_country_id())
                     .expect("The country ID passed for the demand recipt is not valid.");
 
-                let mut buyer: Box<dyn EcoEntity>;// = Box::new(buyer_country); // = // This is the buyer implemented through an EcoEntity Trait
+                let mut buyer = &mut province_map
+                    .get_mut(&demand_recipt.get_tag().get_province_id())
+                    .unwrap()
+                    .get_pops_mut()[demand_recipt.get_tag().get_index_id() as usize];
+
+                //let mut test_buyer_country = Box::new(Country::new(0, "NUL"));
+
+                buyer.add_money(10.0);
 
                 for supply_recipt in world_market
-                    .get_market()
-                    .get_good_supply_list(good_id)
-                    .iter()
+                    .get_market_mut()
+                    .get_good_supply_list_mut(good_id)
+                    .iter_mut()
                 {
                     if remaining_demand <= 0.0 {
                         break;
@@ -92,12 +107,21 @@ fn main() {
                         continue;
                     }
 
-                    let mut supplier: Box<dyn EcoEntity>; // This is for the supplier, impled through an Eco Entity Trait
+                    // This is for the supplier, impled through an Eco Entity Trait
+                    let mut supplier = &mut province_map
+                        .get_mut(&demand_recipt.get_tag().get_province_id())
+                        .unwrap()
+                        .get_pops_mut()[demand_recipt.get_tag().get_index_id() as usize];
 
                     //Now here, I cross check between the available supply and the demand to match them to one another
-                    let buyable = (buyer.get_money() / world_market.get_good_price(good_id))
-                        .min(supply_recipt.get_amount());
-                    // supply_recipt.get_amount()
+                    let buyable = (buyer.get_money() / good_price).min(supply_recipt.get_amount());
+                    let spending = buyable * good_price;
+
+                    supply_recipt.get_amount_mut().add_assign(-buyable);
+                    remaining_demand -= buyable;
+
+                    //supplier.good_transaction(&mut buyer, good_id, buyable, spending);
+                    from_seller_to_buyer(good_id, buyable, spending, supplier, buyer);
                 }
             }
         }
@@ -107,12 +131,25 @@ fn main() {
         }
 
         // Do any other thing that is required that I forgot
+
+        if num_iterations > 100 {
+            cont = false;
+        }
+        num_iterations += 1;
     }
 }
-/*
-fn getEconomicEntity(tag : &EntityTag) -> &Box<dyn EcoEntity>
-{
-    let p = Province::new(0, 0);
 
-    Box::new(&p)
-}*/
+fn from_seller_to_buyer(
+    good_id: u8,
+    good_amount: f32,
+    money_spending: f32,
+    seller: &mut impl EcoEntity,
+    buyer: &mut impl EcoEntity,
+) {
+    buyer.remove_money(money_spending);
+    buyer.add_to_inventory(good_id, good_amount);
+
+    //Have to add taxes and other stuff
+    seller.add_money(money_spending);
+    seller.remove_from_inventory(good_id, good_amount);
+}

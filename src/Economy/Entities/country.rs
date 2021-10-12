@@ -57,20 +57,16 @@ impl EcoEntity for Country {
         self.money += amount;
         self.income_history[31] += amount;
     }
-
     fn remove_money(&mut self, amount: f32) {
         self.money -= amount;
         self.income_history[31] -= amount;
     }
-
     fn get_money(&self) -> f32 {
         self.money
     }
-
     fn get_type(&self) -> EntityType {
         EntityType::Country
     }
-
     fn get_inventory(&self) -> &Vec<f32> {
         &self.stockpile
     }

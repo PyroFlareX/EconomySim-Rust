@@ -99,7 +99,7 @@ pub trait EcoEntity {
     fn add_to_inventory(&mut self, good_id: u8, amount: f32);
     fn remove_from_inventory(&mut self, good_id: u8, amount: f32);
 
-    fn transfer_money(&mut self, receiver: &mut impl EcoEntity, money_spending: f32) {
+    /*fn transfer_money(&mut self, receiver: &mut impl EcoEntity, money_spending: f32) {
         self.remove_money(money_spending);
         receiver.add_money(money_spending);
     }
@@ -120,5 +120,5 @@ pub trait EcoEntity {
         self.transfer_good(receiver, good_id, good_amount);
         //Transfer the good
         self.transfer_money(receiver, money_spending);
-    }
+    }*/
 }
