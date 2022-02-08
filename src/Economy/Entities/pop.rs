@@ -53,16 +53,13 @@ impl EcoEntity for Pop {
         self.money += amount;
         self.income += amount;
     }
-
     fn remove_money(&mut self, amount: f32) {
         self.money -= amount;
         self.spending += amount;
     }
-
     fn get_money(&self) -> f32 {
         self.money
     }
-
     fn get_type(&self) -> EntityType {
         /*if self.pop_type == poptype::artisan
         {
@@ -70,14 +67,12 @@ impl EcoEntity for Pop {
         }*/
         EntityType::Pop
     }
-
     fn get_inventory(&self) -> &Vec<f32> {
         &self.inventory
     }
     fn add_to_inventory(&mut self, good_id: u8, amount: f32) {
         self.inventory[good_id as usize] += amount;
     }
-
     fn remove_from_inventory(&mut self, good_id: u8, amount: f32) {
         //if self.get_type() == EntityType::Artisan
         {

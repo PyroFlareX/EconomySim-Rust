@@ -1,4 +1,6 @@
-use std::{cell::RefCell, collections::HashMap, ops::AddAssign};
+use std::{cell::RefCell, cell::RefMut, collections::HashMap, ops::AddAssign};
+
+use Economy::EntityTag;
 
 use crate::Economy::{Country, EcoEntity, GoodData, Province, State, WorldMarket};
 
@@ -107,26 +109,8 @@ fn main() {
                     continue;
                 }
 
+                //This is so it doesn't have to be borrowed mutably, makes a copy
                 let mut remaining_demand = demand_recipt.get_amount();
-
-                let mut buyer_country = country_map
-                    .get(&demand_recipt.get_tag().get_country_id())
-                    .expect("The country ID passed for the demand recipt is not valid.")
-                    .borrow_mut();
-
-                let mut buyer_province = province_map
-                    .get(&demand_recipt.get_tag().get_province_id())
-                    .expect("The province ID passed for the demand recipt is not valid.")
-                    .borrow_mut();
-
-                let mut buyer2 = &mut buyer_province.get_pops_mut()
-                    [demand_recipt.get_tag().get_index_id() as usize];
-
-                let mut buyer = *buyer_country;
-
-                //let mut test_buyer_country = Box::new(Country::new(0, "NUL"));
-
-                buyer.add_money(10.0);
 
                 for supply_recipt in world_market
                     .get_market_mut()
@@ -139,6 +123,20 @@ fn main() {
                     if supply_recipt.get_amount() <= 0.0 {
                         continue;
                     }
+
+                    //For the Buyer
+                    let mut buyer_country = country_map
+                        .get(&demand_recipt.get_tag().get_country_id())
+                        .expect("The country ID passed for the demand recipt is not valid.")
+                        .borrow_mut();
+
+                    let mut buyer_province = province_map
+                        .get(&demand_recipt.get_tag().get_province_id())
+                        .expect("The province ID passed for the demand recipt is not valid.")
+                        .borrow_mut();
+
+                    let mut buyer = &mut buyer_province.get_pops_mut()
+                        [demand_recipt.get_tag().get_index_id() as usize];
 
                     // This is for the supplier, impled through an Eco Entity Trait
                     let mut supplier_prov = province_map
@@ -156,7 +154,7 @@ fn main() {
                     supply_recipt.get_amount_mut().add_assign(-buyable);
                     remaining_demand -= buyable;
 
-                    from_seller_to_buyer(good_id, buyable, spending, &mut supplier, &mut buyer);
+                    from_seller_to_buyer(good_id, buyable, spending, supplier, buyer);
                     //Other function that I wish I could use but I don't fully understand traits yet, so /shrug
                     //supplier.good_transaction(&mut buyer, good_id, buyable, spending);
                 }
@@ -191,5 +189,30 @@ fn from_seller_to_buyer<T, U>(
 
     //Have to add taxes and other stuff
     seller.add_money(money_spending);
-    seller.remove_from_inventory(good_id, good_amount);
+    //seller.remove_from_inventory(good_id, good_amount);
+}
+
+fn get_info_tuple(
+    country_map: &HashMap<u16, RefCell<Country>>,
+    state_map: &HashMap<u16, RefCell<State>>,
+    province_map: &HashMap<u16, RefCell<Province>>,
+    entity: &EntityTag,
+) -> (RefMut<Country>, RefMut<State>, RefMut<Province>) {
+
+    let mut country = country_map
+        .get(&entity.get_country_id())
+        .expect("The country ID passed for the demand recipt is not valid.")
+        .borrow_mut();
+    
+    let mut province = province_map
+        .get(&entity.get_province_id())
+        .expect("The province ID passed for the demand recipt is not valid.")
+        .borrow_mut();
+    
+    let mut state = state_map
+        .get(&entity.get_state_id())
+        .expect("The province ID passed for the demand recipt is not valid.")
+        .borrow_mut();
+
+    (country, state, province)
 }
